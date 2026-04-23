@@ -2,11 +2,22 @@ from __future__ import annotations
 
 from pathlib import Path
 import uuid
+import importlib.metadata
+
+# Monkey patch to handle missing packages (like torchvision) gracefully
+_original_version = importlib.metadata.version
+
+def _patched_version(name):
+    try:
+        return _original_version(name)
+    except importlib.metadata.PackageNotFoundError:
+        return "0.0.0"
+
+importlib.metadata.version = _patched_version
 
 import cv2
 import numpy as np
 from flask import Flask, redirect, render_template, request, url_for
-from PIL import Image
 from ultralytics import YOLO
 
 
@@ -163,7 +174,7 @@ def create_display_image(
 def predict_probabilities(image_bgr: np.ndarray) -> np.ndarray:
     rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
     flipped = np.ascontiguousarray(np.fliplr(rgb))
-    sources = [Image.fromarray(rgb), Image.fromarray(flipped)]
+    sources = [rgb, flipped]
     results = model.predict(source=sources, verbose=False)
 
     probabilities = [
