@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FaceXpress</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070b12;
+      --surface: rgba(15, 22, 35, 0.88);
+      --surface-strong: #0a101b;
+      --border: rgba(62, 88, 128, 0.45);
+      --accent: #00d4ff;
+      --accent-soft: rgba(0, 212, 255, 0.12);
+      --warn: #ffd166;
+      --text: #e8eefc;
+      --muted: #8fa2c3;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --radius: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "DM Mono", monospace;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(0, 212, 255, 0.18), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255, 209, 102, 0.14), transparent 22%),
+        linear-gradient(180deg, #070b12 0%, #0c1320 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(143, 162, 195, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(143, 162, 195, 0.05) 1px, transparent 1px);
+      background-size: 36px 36px;
+      pointer-events: none;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 95%);
+    }
+
+    .shell {
+      position: relative;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 40px 20px 72px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 212, 255, 0.28);
+      background: rgba(0, 212, 255, 0.08);
+      color: var(--accent);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin-top: 18px;
+      font-family: "Syne", sans-serif;
+      font-size: clamp(2.5rem, 7vw, 4.2rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      background: linear-gradient(135deg, #ffffff 0%, #aeefff 50%, #ffd166 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      max-width: 720px;
+      margin: 16px auto 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.7;
+    }
+
+    .note {
+      margin: 0 auto 24px;
+      max-width: 860px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 209, 102, 0.28);
+      background: rgba(255, 209, 102, 0.09);
+      color: #ffe3a0;
+      font-size: 0.8rem;
+      line-height: 1.7;
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .upload-panel {
+      padding: 34px;
+    }
+
+    .drop-zone {
+      padding: 44px 22px;
+      border-radius: 18px;
+      border: 1.5px dashed rgba(0, 212, 255, 0.28);
+      background:
+        radial-gradient(circle at top, rgba(0, 212, 255, 0.08), transparent 45%),
+        rgba(10, 16, 27, 0.75);
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: rgba(0, 212, 255, 0.72);
+      transform: translateY(-2px);
+    }
+
+    .drop-zone strong {
+      display: block;
+      margin-bottom: 10px;
+      font-family: "Syne", sans-serif;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+
+    .drop-zone span {
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.6;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .file-name {
+      margin-top: 16px;
+      color: var(--accent);
+      font-size: 0.78rem;
+      display: none;
+    }
+
+    .detect-button {
+      width: 100%;
+      margin-top: 20px;
+      border: none;
+      border-radius: 14px;
+      padding: 16px 18px;
+      background: linear-gradient(135deg, #00d4ff 0%, #12b1ff 45%, #ffd166 100%);
+      color: #081018;
+      font-family: "Syne", sans-serif;
+      font-size: 0.98rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
+    }
+
+    .detect-button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .detect-button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      filter: none;
+    }
+
+    .result-header {
+      margin: 34px 0 18px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.68rem;
+      text-align: center;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 22px;
+    }
+
+    .image-card {
+      overflow: hidden;
+    }
+
+    .image-card img {
+      width: 100%;
+      height: 100%;
+      min-height: 320px;
+      max-height: 520px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-label {
+      padding: 12px 16px 16px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      background: var(--surface-strong);
+      border-top: 1px solid var(--border);
+    }
+
+    .analysis-card {
+      padding: 22px;
+      background: rgba(10, 16, 27, 0.88);
+    }
+
+    .analysis-label {
+      color: var(--muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .hero-prediction {
+      margin-top: 16px;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+    }
+
+    .hero-emoji {
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+
+    .hero-title {
+      margin-top: 10px;
+      font-family: "Syne", sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      text-transform: capitalize;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-score {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .bars {
+      list-style: none;
+      margin-top: 20px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .bar-row {
+      display: grid;
+      gap: 6px;
+    }
+
+    .bar-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.74rem;
+    }
+
+    .bar-meta span:first-child {
+      color: var(--text);
+      text-transform: capitalize;
+    }
+
+    .bar-meta span:last-child {
+      color: var(--muted);
+    }
+
+    .bar-track {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0;
+      border-radius: 999px;
+      transition: width 0.9s cubic-bezier(.16, 1, .3, 1);
+    }
+
+    .retry {
+      margin-top: 28px;
+      text-align: center;
+    }
+
+    .retry a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.78rem;
+      transition: color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .retry a:hover {
+      color: var(--accent);
+      border-color: rgba(0, 212, 255, 0.5);
+    }
+
+    #loadingOverlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 18px;
+      background: rgba(7, 11, 18, 0.88);
+      backdrop-filter: blur(10px);
+      z-index: 20;
+    }
+
+    #loadingOverlay.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.14);
+      border-top-color: var(--accent);
+      animation: spin 1s linear infinite;
+    }
+
+    #loadingOverlay p {
+      color: var(--muted);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        padding: 28px 16px 56px;
+      }
+
+      .upload-panel,
+      .analysis-card {
+        padding: 18px;
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .image-card img {
+        min-height: 260px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="loadingOverlay">
+    <div class="spinner"></div>
+    <p>Analyzing expression...</p>
+  </div>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="badge">{{ model_badge }}</div>
+      <h1>FaceXpress</h1>
+      <p class="subtitle">
+        Face-first expression recognition with safer confidence handling.
+        Current model: {{ model_name }}.
+      </p>
+    </section>
+
+    {% if result_note %}
+    <div class="note">{{ result_note }}</div>
+    {% endif %}
+
+    {% if not image %}
+    <section class="panel upload-panel">
+      <form action="/predict" method="post" enctype="multipart/form-data" id="uploadForm">
+        <div class="drop-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+          <strong>Upload one clear face photo</strong>
+          <span>
+            Front-facing, well-lit images work best. The app now crops the largest detected face
+            before predicting the expression.
+          </span>
+          <div class="file-name" id="fileChosen">No file selected</div>
+          <input type="file" id="fileInput" name="image" accept="image/*" required>
+        </div>
+
+        <button type="submit" class="detect-button" id="detectBtn" disabled>
+          Detect Expression
+        </button>
+      </form>
+    </section>
+    {% endif %}
+
+    {% if image %}
+    <div class="result-header">Detection Result</div>
+
+    <section class="result-grid">
+      <article class="panel image-card">
+        <img src="{{ image }}" alt="Analyzed face image">
+        <div class="image-label">Analyzed image</div>
+      </article>
+
+      <article class="panel analysis-card">
+        <div class="analysis-label">Primary result</div>
+        <div class="hero-prediction" style="color: {{ color }}; border-color: {{ color }}55;">
+          <div class="hero-emoji">{{ emoji }}</div>
+          <div class="hero-title" style="color: {{ color }};">{{ top_label }}</div>
+          <div class="hero-score">Best score: {{ top_conf }}%</div>
+        </div>
+
+        <ul class="bars">
+          {% for pred in top5 %}
+          <li class="bar-row">
+            <div class="bar-meta">
+              <span>{{ pred.emoji }} {{ pred.label }}</span>
+              <span>{{ pred.confidence }}%</span>
+            </div>
+            <div class="bar-track">
+              <div
+                class="bar-fill"
+                data-target="{{ pred.confidence }}"
+                style="background: {{ pred.color }};"
+              ></div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </article>
+    </section>
+
+    <div class="retry">
+      <a href="/">Back to another image</a>
+    </div>
+    {% endif %}
+  </main>
+
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const fileChosen = document.getElementById("fileChosen");
+    const detectBtn = document.getElementById("detectBtn");
+    const uploadZone = document.getElementById("uploadZone");
+    const uploadForm = document.getElementById("uploadForm");
+    const overlay = document.getElementById("loadingOverlay");
+
+    if (fileInput) {
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files.length > 0) {
+          fileChosen.textContent = fileInput.files[0].name;
+          fileChosen.style.display = "block";
+          detectBtn.disabled = false;
+        }
+      });
+    }
+
+    if (uploadZone) {
+      uploadZone.addEventListener("dragover", event => {
+        event.preventDefault();
+        uploadZone.classList.add("dragover");
+      });
+
+      uploadZone.addEventListener("dragleave", () => {
+        uploadZone.classList.remove("dragover");
+      });
+
+      uploadZone.addEventListener("drop", event => {
+        event.preventDefault();
+        uploadZone.classList.remove("dragover");
+        if (event.dataTransfer.files.length > 0) {
+          fileInput.files = event.dataTransfer.files;
+          fileChosen.textContent = event.dataTransfer.files[0].name;
+          fileChosen.style.display = "block";
+          detectBtn.disabled = false;
+        }
+      });
+    }
+
+    if (uploadForm) {
+      uploadForm.addEventListener("submit", () => {
+        overlay.classList.add("active");
+        detectBtn.disabled = true;
+        detectBtn.textContent = "Analyzing...";
+      });
+    }
+
+    document.querySelectorAll(".bar-fill").forEach(bar => {
+      const target = Number(bar.dataset.target || 0);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          bar.style.width = target + "%";
+        }, 100);
+      });
+    });
+  </script>
+</body>
+</html>
